@@ -33,11 +33,10 @@ class WINRM
   def exec(cmd)
     http_method = ( server.port.to_s=~/(443|5986)/ ? 'https' : 'http' )
     endpoint = @endpoint ? @endpoint : "#{http_method}://#{server}/wsman"
-    WinRM::WinRM.endpoint = endpoint
-    WinRM::WinRM.set_auth(@user, @pass)
-    WinRM::WinRM.set_ca_trust_path(@ssl_ca_store) unless @ssl_ca_store.nil?
-    inst = WinRM::WinRM.instance
-    @ios = inst.cmd(cmd)
+    inst = WinRM::SOAP::WinRMWebService.new endpoint
+    inst.set_auth(@user, @pass)
+    inst.set_ca_trust_path(@ssl_ca_store) unless @ssl_ca_store.nil?
+    @ios = inst.run_cmd(cmd)
   end
 
   def process_data
