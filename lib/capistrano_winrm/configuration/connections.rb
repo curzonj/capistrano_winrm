@@ -4,12 +4,10 @@ module Capistrano
       class WinRMConnectionFactory #:nodoc:
         def initialize(options)
           @options = options
-          @winrm = WINRM.new(options[:winrm_user], options[:winrm_password], nil, options[:winrm_ssl_ca_store])
         end
 
         def connect_to(server)
-          @winrm.setup_connection(server, @options)
-          @winrm
+          WINRM.new(server, @options)
         end
       end
       

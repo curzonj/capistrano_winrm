@@ -4,12 +4,15 @@ class WINRM
   attr_reader :server
   alias :xserver :server
 
-  def initialize(user, pass, endpoint = nil, ssl_ca_store = nil)
-    @user = user
-    @pass = pass
-    @endpoint = endpoint
-    @ssl_ca_store = ssl_ca_store
-    @int_hash = {}
+  def initialize(server, options)
+    @user = options[:winrm_user]
+    @pass = options[:winrm_password]
+    @server = server
+    @ssl_ca_store = options[:winrm_ssl_ca_store]
+    @int_hash = {
+      :server => server,
+      :options => options
+    }
   end
 
   def [](key)
@@ -20,19 +23,16 @@ class WINRM
     @int_hash[key.to_sym] = value
   end
 
-  def setup_connection(server, options)
-    @server = server
-    @int_hash[:options] = options
-    @int_hash[:server] = server
-  end
-
   def open_channel
     yield self
   end
 
-  def exec(cmd)
+  def endpoint
     http_method = ( server.port.to_s=~/(443|5986)/ ? 'https' : 'http' )
-    endpoint = @endpoint ? @endpoint : "#{http_method}://#{server}/wsman"
+    "#{http_method}://#{server}/wsman"
+  end
+
+  def exec(cmd)
     inst = WinRM::SOAP::WinRMWebService.new endpoint
     inst.set_auth(@user, @pass)
     inst.set_ca_trust_path(@ssl_ca_store) unless @ssl_ca_store.nil?
